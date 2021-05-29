@@ -1,2 +1,5 @@
-# proto245
-FT245 Style Synchronous FIFO master (SystemVerilog)
+# FT245 Synchronous FIFO protocol master
+
+![PyTest Modelsim Status](https://github.com/esynr3z/proto245/workflows/pytest-modelsim/badge.svg)
+
+🚧 WORK IN PROGRESS 🚧
