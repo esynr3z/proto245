@@ -25,8 +25,8 @@ module proto245 #(
     parameter RX_BURST_SIZE      = 0,    // Maximum number of words inside read (receive) burst; use 0 to disable this feature and enable unlimited bursts
     parameter SINGLE_CLK_DOMAIN  = 0,    // if ft_clk and clk are from the one clock domain (configures FIFOs type)
     // Derived parameters
-    localparam TX_FIFO_LOAD_W = $clog2(TX_FIFO_SIZE) + 1,
-    localparam RX_FIFO_LOAD_W = $clog2(RX_FIFO_SIZE) + 1
+    parameter TX_FIFO_LOAD_W = $clog2(TX_FIFO_SIZE) + 1,
+    parameter RX_FIFO_LOAD_W = $clog2(RX_FIFO_SIZE) + 1
 )(
     // FT interface - should be routed directly to IO
     input  logic              ft_rst,   // Active high synchronous reset (ft_clk domain)
@@ -101,7 +101,7 @@ always_ff @(posedge ft_clk) begin
     end
 end
 
-if (SINGLE_CLK_DOMAIN) begin: rxfifo_sync_genblk
+generate if (SINGLE_CLK_DOMAIN) begin: rxfifo_sync_genblk
     fifo_sync #(
         .ADDR_W (RX_FIFO_ADDR_W),
         .DATA_W (DATA_W)
@@ -139,7 +139,7 @@ end else begin: rxfifo_async_genblk
         .rvalid (rxfifo_valid),
         .rempty (rxfifo_empty)
     );
-end
+end endgenerate
 assign rxfifo_ready = (rxfifo_wload <= RX_START_THRESHOLD);
 
 // When rxfifo becomes full, we need to save last data words already pushed out
@@ -155,7 +155,7 @@ assign rxfifo_almost_full = (rxfifo_wload >= (RX_FIFO_SIZE - RX_OVERFLOW_MAX));
 // RX burst counter
 //-------------------------------------------------------------------
 logic rx_burst_end;
-if (RX_BURST_SIZE != 0) begin: rx_burst_genblk
+generate if (RX_BURST_SIZE != 0) begin: rx_burst_genblk
     logic [$clog2(RX_BURST_SIZE)-1:0] rx_burst_cnt;
     always_ff @(posedge ft_clk) begin
         if (ft_rst) begin
@@ -169,7 +169,7 @@ if (RX_BURST_SIZE != 0) begin: rx_burst_genblk
     assign rx_burst_end = (rx_burst_cnt == (RX_BURST_SIZE - RX_OVERFLOW_MAX));
 end else begin
     assign rx_burst_end = 1'b0;
-end
+end endgenerate
 
 //-------------------------------------------------------------------
 // TX FIFO
@@ -183,7 +183,7 @@ logic txfifo_ren, txfifo_ren_next;
 
 logic txovrbuf_wr;
 
-if (SINGLE_CLK_DOMAIN) begin: txfifo_sync_genblk
+generate if (SINGLE_CLK_DOMAIN) begin: txfifo_sync_genblk
     fifo_sync #(
         .ADDR_W (RX_FIFO_ADDR_W),
         .DATA_W (DATA_W)
@@ -221,7 +221,7 @@ end else begin: txfifo_async_genblk
         .rvalid (txfifo_rvalid),
         .rempty (txfifo_empty)
     );
-end
+end endgenerate
 
 // we need a timeout to prevent blocking small portion of data inside FIFO,
 // so after timeout expires - all data will be transmited
@@ -293,7 +293,7 @@ assign txovrbuf_ready = (backoff_timeout_cnt == TX_BACKOFF_TIMEOUT) && !txovrbuf
 // TX burst counter
 //-------------------------------------------------------------------
 logic tx_burst_end;
-if (TX_BURST_SIZE != 0) begin: tx_burst_genblk
+generate if (TX_BURST_SIZE != 0) begin: tx_burst_genblk
     logic [$clog2(TX_BURST_SIZE)-1:0] tx_burst_cnt;
     always_ff @(posedge ft_clk) begin
         if (ft_rst) begin
@@ -307,7 +307,7 @@ if (TX_BURST_SIZE != 0) begin: tx_burst_genblk
     assign tx_burst_end = (tx_burst_cnt == (TX_BURST_SIZE - 1));
 end else begin
     assign tx_burst_end = 1'b0;
-end
+end endgenerate
 
 //-------------------------------------------------------------------
 // Protocol FSM
