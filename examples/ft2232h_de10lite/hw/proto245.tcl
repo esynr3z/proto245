@@ -15,7 +15,7 @@
 
 # Quartus Prime: Generate Tcl File for Project
 # File: proto245.tcl
-# Generated on: Mon Jun  7 23:05:37 2021
+# Generated on: Fri Jun 11 23:16:25 2021
 
 # Load Quartus Prime Tcl Project package
 package require ::quartus::project
@@ -43,12 +43,12 @@ if {[is_project_open]} {
 if {$make_assignments} {
 	set_global_assignment -name FAMILY "MAX 10 FPGA"
 	set_global_assignment -name DEVICE 10M50DAF484C7G
-	set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
-	set_global_assignment -name DEVICE_FILTER_PIN_COUNT 484
-	set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 6
 	set_global_assignment -name ORIGINAL_QUARTUS_VERSION 19.1.0
 	set_global_assignment -name PROJECT_CREATION_TIME_DATE "20:50:27  июня 05, 2021"
 	set_global_assignment -name LAST_QUARTUS_VERSION "19.1.0 Lite Edition"
+	set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
+	set_global_assignment -name DEVICE_FILTER_PIN_COUNT 484
+	set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 6
 	set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 	set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 	set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
@@ -63,7 +63,7 @@ if {$make_assignments} {
 	set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 	set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 	set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-	set_global_assignment -name SYSTEMVERILOG_FILE ../../../src/proto245.sv
+	set_global_assignment -name SYSTEMVERILOG_FILE ../../../src/proto245s.sv
 	set_global_assignment -name SYSTEMVERILOG_FILE ../../../src/fifo_sync.sv
 	set_global_assignment -name SYSTEMVERILOG_FILE ../../../src/fifo_async.sv
 	set_global_assignment -name SYSTEMVERILOG_FILE ../../../src/dpram.sv
@@ -104,7 +104,7 @@ if {$make_assignments} {
 	# gpio[2]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_clk -comment gpio[2]
 	# gpio[4]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_siwua -comment gpio[4]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_siwu -comment gpio[4]
 	# gpio[6]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_wrn -comment gpio[6]
 	# gpio[8]
@@ -134,7 +134,7 @@ if {$make_assignments} {
 	# gpio[2]
 	set_location_assignment PIN_V9 -to ft_clk -comment gpio[2]
 	# gpio[4]
-	set_location_assignment PIN_V8 -to ft_siwua -comment gpio[4]
+	set_location_assignment PIN_V8 -to ft_siwu -comment gpio[4]
 	# gpio[6]
 	set_location_assignment PIN_V7 -to ft_wrn -comment gpio[6]
 	# gpio[8]

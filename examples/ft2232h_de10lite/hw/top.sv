@@ -10,7 +10,7 @@ module top #(
     // ft board
     output              ft_oen,
     input               ft_clk,
-    output              ft_siwua,
+    output              ft_siwu,
     output              ft_wrn,
     output              ft_rdn,
     input               ft_txen,
@@ -74,7 +74,7 @@ logic                      txfifo_wr;
 logic [TX_FIFO_LOAD_W-1:0] txfifo_load;
 logic                      txfifo_full;
 
-proto245 #(
+proto245s #(
     .DATA_W             (DATA_W),
     .TX_FIFO_SIZE       (TX_FIFO_SIZE),
     .TX_START_THRESHOLD (TX_START_THRESHOLD),
@@ -86,18 +86,21 @@ proto245 #(
     .SINGLE_CLK_DOMAIN  (SINGLE_CLK_DOMAIN)
 ) proto245 (
     // FT interface - should be routed directly to IO
-    .ft_rst  (ft_rst),
-    .ft_clk  (ft_clk),
-    .ft_rxfn (ft_rxfn),
-    .ft_txen (ft_txen),
-    .ft_din  (ft_din),
-    .ft_dout (ft_dout),
-    .ft_rdn  (ft_rdn),
-    .ft_wrn  (ft_wrn),
-    .ft_oen  (ft_oen),
-    // System interface
-    .clk          (sys_clk),
-    .rst          (sys_rst),
+    .ft_rst   (ft_rst),
+    .ft_clk   (ft_clk),
+    .ft_rxfn  (ft_rxfn),
+    .ft_txen  (ft_txen),
+    .ft_din   (ft_din),
+    .ft_dout  (ft_dout),
+    .ft_bein  (0),
+    .ft_beout (),
+    .ft_rdn   (ft_rdn),
+    .ft_wrn   (ft_wrn),
+    .ft_oen   (ft_oen),
+    .ft_siwu  (ft_siwu),
+    // FIFO interface
+    .fifo_clk     (sys_clk),
+    .fifo_rst     (sys_rst),
     .rxfifo_rd    (rxfifo_rd),
     .rxfifo_data  (rxfifo_data),
     .rxfifo_valid (rxfifo_valid),
@@ -111,7 +114,6 @@ proto245 #(
 
 assign ft_data = ft_oen ? ft_dout : 'z;
 assign ft_din  = ft_data;
-assign ft_siwua = 1'b0;
 
 //------------------------------------------------------------------------------
 // Test logic
