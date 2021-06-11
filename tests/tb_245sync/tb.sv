@@ -103,7 +103,7 @@ proto245s #(
     .ft_rdn   (ft245_if.rdn),
     .ft_wrn   (ft245_if.wrn),
     .ft_oen   (ft245_if.oen),
-    .ft_siwun (),
+    .ft_siwu  (),
     // FIFO interface
     .fifo_clk     (fifo_clk),
     .fifo_rst     (fifo_rst),

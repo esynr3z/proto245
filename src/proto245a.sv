@@ -12,7 +12,7 @@
 //   - FT2232HP/FT2233HP
 //
 // Note:
-//   Send immediate / wake up signal (SIWU#) is not supported at the moment.
+//   Send immediate / wake up signal (SIWU) tied to inactive state.
 //------------------------------------------------------------------------------
 module proto245a #(
     parameter DATA_W             = 8,    // FT chip data bus width
@@ -36,7 +36,7 @@ module proto245a #(
     output logic [DATA_W-1:0] ft_dout,  // FT DATA tri-state IOs: output
     output logic              ft_rdn,   // FT RD# signal
     output logic              ft_wrn,   // FT WR# signal
-    output logic              ft_siwun, // FT SIWU# signal
+    output logic              ft_siwu,  // FT SIWU signal
     // FIFO interface
     input  logic                      fifo_clk,     // FIFO clock
     input  logic                      fifo_rst,     // Active high synchronous reset (FIFO clock domain)
@@ -309,9 +309,9 @@ end
 //-------------------------------------------------------------------
 // To FT chip
 //-------------------------------------------------------------------
-assign ft_rdn   = rdn;
-assign ft_wrn   = wrn;
-assign ft_dout  = dout;
-assign ft_siwun = 1'b1;
+assign ft_rdn  = rdn;
+assign ft_wrn  = wrn;
+assign ft_dout = dout;
+assign ft_siwu = 1'b1;
 
 endmodule

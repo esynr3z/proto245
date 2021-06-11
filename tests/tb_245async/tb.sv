@@ -77,7 +77,7 @@ fifo_if  #(
 // DUT
 //-------------------------------------------------------------------
 proto245a #(
-    .DATA_W (DATA_W),
+    .DATA_W            (DATA_W),
     .TX_FIFO_SIZE      (TX_FIFO_SIZE),
     .RX_FIFO_SIZE      (RX_FIFO_SIZE),
     .SINGLE_CLK_DOMAIN (SINGLE_CLK_DOMAIN),
@@ -94,7 +94,7 @@ proto245a #(
     .ft_dout  (ft245_if.dout),
     .ft_rdn   (ft245_if.rdn),
     .ft_wrn   (ft245_if.wrn),
-    .ft_siwun (),
+    .ft_siwu  (),
     // FIFO interface
     .fifo_clk     (fifo_clk),
     .fifo_rst     (fifo_rst),

@@ -10,7 +10,7 @@
 //   - FT602Q
 //
 // Note for the FT2xx chips:
-//   Send immediate / wake up signal (SIWU#) is not supported at the moment.
+//   Send immediate / wake up signal (SIWU) tied to inactive state.
 //
 // Note for the FT60x chips:
 //   Byte enable signals (BE) are not supported at the moment.
@@ -44,7 +44,7 @@ module proto245s #(
     output logic              ft_rdn,   // FT RD# signal
     output logic              ft_wrn,   // FT WR# signal
     output logic              ft_oen,   // FT OE# signal
-    output logic              ft_siwun, // FT SIWU# signal
+    output logic              ft_siwu,  // FT SIWU signal
     // FIFO interface
     input  logic                      fifo_clk,     // FIFO clock
     input  logic                      fifo_rst,     // Active high synchronous reset (FIFO clock domain)
@@ -465,5 +465,6 @@ assign ft_oen   = oen;
 assign ft_wrn   = wrn;
 assign ft_dout  = dout;
 assign ft_beout = '1;
+assign ft_siwu  = 1'b1;
 
 endmodule
