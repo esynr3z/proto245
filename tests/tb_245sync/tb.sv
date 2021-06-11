@@ -4,11 +4,11 @@ module tb;
 `ifndef DATA_W             `define DATA_W             8  `endif
 `ifndef TX_FIFO_SIZE       `define TX_FIFO_SIZE       32 `endif
 `ifndef TX_START_THRESHOLD `define TX_START_THRESHOLD 16 `endif
-`ifndef TX_BURST_SIZE      `define TX_BURST_SIZE      0 `endif
+`ifndef TX_BURST_SIZE      `define TX_BURST_SIZE      0  `endif
 `ifndef TX_BACKOFF_TIMEOUT `define TX_BACKOFF_TIMEOUT 64 `endif
 `ifndef RX_FIFO_SIZE       `define RX_FIFO_SIZE       32 `endif
-`ifndef RX_START_THRESHOLD `define RX_START_THRESHOLD 16  `endif
-`ifndef RX_BURST_SIZE      `define RX_BURST_SIZE      0 `endif
+`ifndef RX_START_THRESHOLD `define RX_START_THRESHOLD 16 `endif
+`ifndef RX_BURST_SIZE      `define RX_BURST_SIZE      0  `endif
 
 `ifndef FT_CLK_FREQ   `define FT_CLK_FREQ   60e6 `endif
 `ifndef FIFO_CLK_FREQ `define FIFO_CLK_FREQ 48e6 `endif
@@ -68,7 +68,7 @@ end
 //-------------------------------------------------------------------
 // DUT environment
 //-------------------------------------------------------------------
-ft245_if #(.DATA_W (DATA_W)) ft245_if (.clk (ft_clk));
+ft245_sync_if #(.DATA_W (DATA_W)) ft245_if (.clk (ft_clk));
 initial @(negedge ft_rst) ft245_if.serve();
 
 fifo_if  #(
@@ -80,7 +80,7 @@ fifo_if  #(
 //-------------------------------------------------------------------
 // DUT
 //-------------------------------------------------------------------
-proto245 #(
+proto245s #(
     .DATA_W             (DATA_W),
     .TX_FIFO_SIZE       (TX_FIFO_SIZE),
     .TX_START_THRESHOLD (TX_START_THRESHOLD),
@@ -92,18 +92,21 @@ proto245 #(
     .SINGLE_CLK_DOMAIN  (SINGLE_CLK_DOMAIN)
 ) dut (
     // FT interface
-    .ft_rst  (ft_rst),
-    .ft_clk  (ft_clk),
-    .ft_rxfn (ft245_if.rxfn),
-    .ft_txen (ft245_if.txen),
-    .ft_din  (ft245_if.din),
-    .ft_dout (ft245_if.dout),
-    .ft_rdn  (ft245_if.rdn),
-    .ft_wrn  (ft245_if.wrn),
-    .ft_oen  (ft245_if.oen),
-    // System interface
-    .clk          (fifo_clk),
-    .rst          (fifo_rst),
+    .ft_rst   (ft_rst),
+    .ft_clk   (ft_clk),
+    .ft_rxfn  (ft245_if.rxfn),
+    .ft_txen  (ft245_if.txen),
+    .ft_din   (ft245_if.din),
+    .ft_dout  (ft245_if.dout),
+    .ft_bein  ('1),
+    .ft_beout (),
+    .ft_rdn   (ft245_if.rdn),
+    .ft_wrn   (ft245_if.wrn),
+    .ft_oen   (ft245_if.oen),
+    .ft_siwun (),
+    // FIFO interface
+    .fifo_clk     (fifo_clk),
+    .fifo_rst     (fifo_rst),
     .rxfifo_rd    (fifo_if.rxfifo_rd),
     .rxfifo_data  (fifo_if.rxfifo_data),
     .rxfifo_valid (fifo_if.rxfifo_valid),
@@ -118,34 +121,7 @@ proto245 #(
 //-------------------------------------------------------------------
 // Utilites
 //-------------------------------------------------------------------
-function automatic void new_randomized(int n, ref data_t data []);
-    data = new[n];
-    foreach (data[i])
-        data[i] = $random();
-endfunction
-
-function automatic void push_to_queue(ref data_t queue [$], ref data_t data []);
-    foreach (data[i])
-        queue.push_front(data[i]);
-endfunction
-
-function automatic int compare_queues(ref data_t expected [$], ref data_t actual [$]);
-    int err;
-    if (expected.size() != actual.size()) begin
-        $error("Length of the expected data is %0d, but length of actual data is %0d!",
-               expected.size(), actual.size());
-        err += 1;
-    end else begin
-        for (int i=0; i<expected.size(); i+=1) begin
-            if (expected[i] !== actual[i]) begin
-                $error("Expected data %0d is 0x%0x, but actual data is 0x%0x!",
-                       i, expected[i], actual[i]);
-                err += 1;
-            end
-        end
-    end
-    return err;
-endfunction
+`include "utils.svh"
 
 `define START_TEST $display("--- Start %m ---")
 `define END_TEST   $display("--- End %m ---")

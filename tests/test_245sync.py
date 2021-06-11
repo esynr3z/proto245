@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""HDL tests"""
+"""Tests for proto245s"""
 
 import pytest
 from sim import Simulator, path, get_test_names
@@ -9,10 +9,12 @@ from sim import Simulator, path, get_test_names
 
 def run_sim(cwd, defines, simtool, gui):
     sim = Simulator(name=simtool, gui=gui, cwd=cwd)
-    tb_dir = path("tb")
+    tb_dir = path("tb_245sync")
+    tb_common_dir = path("common")
     rtl_dir = path("../src")
-    sim.incdirs += [tb_dir, rtl_dir, cwd]
+    sim.incdirs += [tb_dir, tb_common_dir, rtl_dir, cwd]
     sim.sources += tb_dir.glob('*.sv')
+    sim.sources += tb_common_dir.glob('*.sv')
     sim.sources += rtl_dir.glob('*.sv')
     sim.defines += defines
     sim.top = "tb"
@@ -54,6 +56,7 @@ def test(tmp_path, testcase, clock_domains, ft_clock, fifo_clock, data_width, si
     res = run_sim(tmp_path, defines, simtool, gui)
     if not gui:
         assert res
+
 
 def test_debug(tmp_path, simtool, gui):
     if not gui:

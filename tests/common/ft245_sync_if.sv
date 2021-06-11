@@ -1,4 +1,4 @@
-interface ft245_if #(
+interface ft245_sync_if #(
     parameter DATA_W = 32
 )(
     input bit clk

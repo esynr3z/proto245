@@ -2,7 +2,7 @@
 
 Environment is built around Python [pytest](https://docs.pytest.org/) framework - it offers some nice and easy to use tools for test execution control and parametrization out of the box.
 
-Current workflow is based on the [pyhdlsim](https://github.com/esynr3z/pyhdlsim) example - ```sim.py``` is a wrapper around HDL simulators and ```test_hdl.py``` contains tests.
+Current workflow is based on the [pyhdlsim](https://github.com/esynr3z/pyhdlsim) example - ```sim.py``` is a wrapper around HDL simulators and ```test_*.py``` files contain tests.
 
 Tested on:
 
@@ -42,19 +42,19 @@ pytest -v -n auto -k "SINGLE and 60e6"
 Run "default" test with no parametrization to debug the testbench inside the simulator GUI:
 
 ```bash
-pytest -v test_hdl.py::test_debug --gui
+pytest -v test_245sync.py::test_debug --gui
 ```
 
 Run specific test using it's full name:
 
 ```bash
-pytest -v test_hdl.py::test[SINGLE_CLK_DOMAIN-DATA_W=32-FIFO_CLK_FREQ=48e6-FT_CLK_FREQ=100e6-TESTCASE=test_read_corners]
+pytest -v test_245sync.py::test[SINGLE_CLK_DOMAIN-DATA_W=32-FIFO_CLK_FREQ=48e6-FT_CLK_FREQ=100e6-TESTCASE=test_read_corners]
 ```
 
 Run specific test inside the simulator GUI (helpful for failed tests debugging):
 
 ```bash
-pytest -v --gui test_hdl.py::test[SINGLE_CLK_DOMAIN-DATA_W=32-FIFO_CLK_FREQ=48e6-FT_CLK_FREQ=100e6-TESTCASE=test_read_corners]
+pytest -v --gui test_245sync.py::test[SINGLE_CLK_DOMAIN-DATA_W=32-FIFO_CLK_FREQ=48e6-FT_CLK_FREQ=100e6-TESTCASE=test_read_corners]
 ```
 
 Run tests in the specified simulator (also compatible with variants above):
