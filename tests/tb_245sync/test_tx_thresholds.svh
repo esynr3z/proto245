@@ -16,6 +16,10 @@ task test_tx_thresholds(output int err);
             fifo_if.send(fifo_data);
         end
         begin
+            ft245_if.recv(words, ft245_data);
+            push_to_queue(actual_data, ft245_data);
+        end
+        begin
             // check that sending starts only if load counter >= threshold
             @(negedge ft245_if.wrn);
             if (fifo_if.txfifo_load < TX_START_THRESHOLD) begin
@@ -29,11 +33,6 @@ task test_tx_thresholds(output int err);
                 stop_err = 1;
                 $error("TX_BURST_SIZE error!");
             end else $display("TX_BURST_SIZE ok!");
-            // check that all other words were transmitted
-            @(negedge ft245_if.wrn);
-            @(posedge ft245_if.wrn);
-            ft245_if.recv(words, ft245_data);
-            push_to_queue(actual_data, ft245_data);
         end
     join
     err += start_err;

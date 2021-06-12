@@ -27,7 +27,7 @@ typedef logic [DATA_W-1:0] data_t;
 
 data_t txbuf [$];
 data_t rxbuf [$];
-localparam DEFAULT_TXBUF_LIMIT = 1024;
+localparam DEFAULT_TXBUF_LIMIT = 0;
 int txbuf_limit = DEFAULT_TXBUF_LIMIT;
 
 task automatic send(ref data_t data []); // when host send data, it go to the receive buffer
@@ -81,10 +81,10 @@ endtask
 task serve_write;
         forever begin: data_drv
             @(drv);
-            if (!drv.wrn && (txbuf.size() < txbuf_limit)) begin
+            if (!drv.wrn && !drv.txen && (txbuf.size() < txbuf_limit)) begin
                 txbuf.push_front(drv.dout);
             end
-            drv.txen <= (txbuf_limit > 1) ? (txbuf.size() >= (txbuf_limit - 1)) : 1'b0;
+            drv.txen <= txbuf_limit ? (txbuf.size() >= txbuf_limit) : 1'b1;
         end
 endtask
 

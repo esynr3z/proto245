@@ -8,10 +8,10 @@ task test_tx_simple(output int err);
     // simple several writes to FT chip
     new_randomized(6, fifo_data);
     push_to_queue(expected_data, fifo_data);
-    fifo_if.send(fifo_data);
-    @(posedge ft245_if.wrn);
-    @(posedge ft_clk);
-    ft245_if.recv(6, ft245_data);
+    fork
+        fifo_if.send(fifo_data);
+        ft245_if.recv(6, ft245_data);
+    join
     push_to_queue(actual_data, ft245_data);
     err += compare_queues(expected_data, actual_data);
     expected_data.delete();
@@ -19,10 +19,10 @@ task test_tx_simple(output int err);
 
     new_randomized(24, fifo_data);
     push_to_queue(expected_data, fifo_data);
-    fifo_if.send(fifo_data);
-    @(posedge ft245_if.wrn);
-    @(posedge ft_clk);
-    ft245_if.recv(24, ft245_data);
+    fork
+        fifo_if.send(fifo_data);
+        ft245_if.recv(24, ft245_data);
+    join
     push_to_queue(actual_data, ft245_data);
     err += compare_queues(expected_data, actual_data);
     `END_TEST;

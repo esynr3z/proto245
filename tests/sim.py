@@ -10,8 +10,10 @@ import subprocess
 import argparse
 from pathlib import Path
 
+
 def get_test_names(globvars):
     return [name for name in globvars.keys() if name.startswith('test') and callable(globvars[name])]
+
 
 def path(filepath):
     """Conver filepath string to Path object"""
@@ -150,7 +152,6 @@ class Simulator:
                     defines, incdirs, self._repr_no_quotes(src))
             elif ext == 'vhd':
                 sources += 'vcom +acc=rnbpc -93 %s\n' % self._repr_no_quotes(src)
-        print(sources)
         if not self.gui:
             run = 'run -all'
         else:
@@ -182,6 +183,7 @@ if [file exist wave.do] {{
             vsim_args += ' -c'
             vsim_args += ' -onfinish exit'
         else:
+            vsim_args += ' -gui'
             vsim_args += ' -onfinish stop'
         self._exec('vsim', vsim_args)
 

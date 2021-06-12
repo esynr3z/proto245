@@ -136,7 +136,7 @@ proto245s #(
 `include "test_tx_flow_control.svh"
 `include "test_tx_thresholds.svh"
 
-`ifndef TESTCASE `define TESTCASE test_tx_flow_control `endif
+`ifndef TESTCASE `define TESTCASE test_tx_thresholds `endif
 
 initial begin : main
     int test_err;

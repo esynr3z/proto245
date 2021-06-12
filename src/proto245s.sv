@@ -181,7 +181,7 @@ end endgenerate
 //-------------------------------------------------------------------
 // TX FIFO
 //-------------------------------------------------------------------
-logic [DATA_W-1:0] txfifo_rdata;
+logic [DATA_W-1:0] txfifo_rdata, txfifo_rdata_prev;
 logic txfifo_rvalid;
 logic [TX_FIFO_LOAD_W-1:0] txfifo_rload;
 logic txfifo_ready;
@@ -189,6 +189,14 @@ logic txfifo_empty;
 logic txfifo_ren, txfifo_ren_next;
 
 logic txovrbuf_wr;
+
+always_ff @(posedge ft_clk) begin
+    if (ft_rst) begin
+        txfifo_rdata_prev <= '0;
+    end else begin
+        txfifo_rdata_prev <= txfifo_rdata;
+    end
+end
 
 generate if (SINGLE_CLK_DOMAIN) begin: txfifo_sync_genblk
     fifo_sync #(
@@ -250,15 +258,16 @@ assign txfifo_ready = (txfifo_rload >= TX_START_THRESHOLD) ||
 //-------------------------------------------------------------------
 // TX overrun buffer
 //-------------------------------------------------------------------
-// maximum txfifo overrun is 3 words in the current configuration;
-// in general, it is equal to the number of ticks between ft_txen assertion and txfifo_ren deassertion
-localparam TX_OVERRUN_MAX = 3;
+// maximum txfifo overrun is 4 words in the current configuration;
+// in general, it is equal to the number of ticks between ft_txen assertion and txfifo_ren deassertion plus 1
+localparam TX_OVERRUN_MAX = 4;
 
 localparam TXOVRBUF_ADDR_W = $clog2(TX_OVERRUN_MAX);
 localparam TXOVRBUF_LOAD_W = TXOVRBUF_ADDR_W + 1;
 
 logic [DATA_W-1:0] txovrbuf_rdata;
 logic [DATA_W-1:0] txovrbuf_wdata;
+logic txovrbuf_wr0, txovrbuf_wr1;
 logic [TXOVRBUF_LOAD_W-1:0] txovrbuf_load;
 logic txovrbuf_rvalid;
 logic txovrbuf_empty;
@@ -267,13 +276,16 @@ logic txovrbuf_ready;
 
 always_ff @(posedge ft_clk) begin
     if (ft_rst) begin
-        txovrbuf_wr    <= 1'b0;
-        txovrbuf_wdata <= 0;
+        txovrbuf_wr0   <= 1'b0;
+        txovrbuf_wr1   <= 1'b0;
+        txovrbuf_wdata <= '0;
     end else begin
-        txovrbuf_wr    <= txfifo_rvalid;
-        txovrbuf_wdata <= txfifo_rdata;
+        txovrbuf_wr0   <= txfifo_rvalid;
+        txovrbuf_wr1   <= txovrbuf_wr0;
+        txovrbuf_wdata <= txfifo_rdata_prev;
     end
 end
+assign txovrbuf_wr = txovrbuf_wr0 | txovrbuf_wr1;
 
 // tx overrun buffer - when FT chip becomes full,
 // we need to save last data already pushed out from our txfifo to prevent data loss
@@ -364,9 +376,9 @@ always_comb begin
             end else if (ft_not_full && (txfifo_ready || txovrbuf_ready)) begin
                 // go transmit, if FT chip has empty space and our tranmsmit fifo is full enough,
                 // but if we have data words left from the previous burst we need to transfer them first
-                fsm_next = txovrbuf_ready ? TX_OVERRUN_S : TX_S;
-                txovrbuf_ren_next = txovrbuf_ready;
-                txfifo_ren_next   = !txovrbuf_ready;
+                fsm_next = !txovrbuf_empty ? TX_OVERRUN_S : TX_S;
+                txovrbuf_ren_next = !txovrbuf_empty;
+                txfifo_ren_next   = txovrbuf_empty;
             end
         end
 

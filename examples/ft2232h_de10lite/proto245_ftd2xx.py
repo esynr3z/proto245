@@ -42,5 +42,9 @@ data_len_mb = data_len / 1024 / 1024
 print("Read %.02f MB (%d bytes) in %f seconds (%.02f MB/s)" %
       (data_len_mb, data_len, exec_time, data_len_mb / exec_time))
 
+# Verify results
+golden_data = [i % 256 for i in range(data_len)]
+print("Data is correct: %s" % (golden_data == data))
+
 # Close the connection
 dev.close()

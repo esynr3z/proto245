@@ -34,7 +34,7 @@ def gui(pytestconfig):
 
 
 @pytest.mark.parametrize('testcase', ["TESTCASE=test_rx", "TESTCASE=test_tx"])
-@pytest.mark.parametrize('clock_domains', ["MULTIPLE_CLK_DOMAINS",  "SINGLE_CLK_DOMAIN"])
+@pytest.mark.parametrize('clock_domains', ["MULTIPLE_CLK_DOMAINS", "SINGLE_CLK_DOMAIN"])
 def test(tmp_path, testcase, clock_domains, simtool, gui):
     defines = [testcase, clock_domains]
     res = run_sim(tmp_path, defines, simtool, gui)
