@@ -1,6 +1,5 @@
 module top #(
-    parameter DATA_W = 8,
-    parameter TEST_WORDS_TOTAL = 100 * 1024 * 1024
+    parameter DATA_W = 8
 )(
     // dev board
     input        max10_clk1_50,
@@ -118,72 +117,109 @@ assign ft_din  = ft_data;
 //------------------------------------------------------------------------------
 // Test logic
 //------------------------------------------------------------------------------
-// Read out RX fifo to read command
-always_ff @(posedge sys_clk) begin
-    if (sys_rst)
-        rxfifo_rd <= 0;
-    else
-        rxfifo_rd <= ~rxfifo_empty;
-end
+enum logic [3:0] {
+    CMD_WAIT_S,
+    CMD_READ_S,
+    CMD_PARSE_S,
+    TX_TEST_S
+} fsm_state, fsm_next;
 
-// Receive command and parse it
-logic [31:0] cmd_word;
-always_ff @(posedge sys_clk) begin
-    if (sys_rst)
-        cmd_word <= 0;
-    else if (rxfifo_valid)
-        cmd_word <= {rxfifo_data, cmd_word[31-:24]};
-    else if (!rxfifo_valid && rxfifo_empty)
-        cmd_word <= 0;
-end
+logic [63:0] cmd_shifter, cmd_shifter_next;
+logic [7:0] cmd_prefix;
+logic [7:0] cmd_suffix;
+logic [31:0] cmd_data;
+logic [15:0] cmd_code;
+logic rxfifo_rd_next;
+logic [DATA_W-1:0] txfifo_data_next;
+logic txfifo_wr_next;
+logic led0_drv, led0_drv_next;
+logic [31:0] word_cnt, word_cnt_next;
 
-logic do_test, do_led0_on, do_led0_off;
-always_ff @(posedge sys_clk) begin
-    do_test     <= 1'b0;
-    do_led0_on  <= 1'b0;
-    do_led0_off <= 1'b0;
-    case (cmd_word)
-        32'hbadc0ffe: do_test     <= 1'b1;
-        32'h001711ED: do_led0_on  <= 1'b1;
-        32'h00ff11ED: do_led0_off <= 1'b1;
-    endcase
-end
+assign {cmd_prefix, cmd_code, cmd_data, cmd_suffix} = cmd_shifter;
 
-// TX FIFO fill
-logic [$clog2(TEST_WORDS_TOTAL):0] word_cnt;
-logic tx_en;
-always @(posedge sys_clk) begin
-    if (sys_rst) begin
-        word_cnt    <= 0;
-        tx_en       <= 0;
-        txfifo_data <= 0;
-        txfifo_wr   <= 0;
-    end else if (tx_en) begin
-        if (word_cnt >= (TEST_WORDS_TOTAL - 1)) begin
-            word_cnt    <= 0;
-            txfifo_data <= 0;
-            tx_en       <= 0;
-            txfifo_wr   <= 0;
-        end else if (!txfifo_full) begin
-            word_cnt    <= word_cnt + 1'b1;
-            txfifo_data <= txfifo_data + 1'b1;
+always_comb begin
+    fsm_next         = fsm_state;
+    cmd_shifter_next = cmd_shifter;
+    rxfifo_rd_next   = rxfifo_rd;
+    txfifo_data_next = txfifo_data;
+    txfifo_wr_next   = txfifo_wr;
+    led0_drv_next    = led0_drv;
+    word_cnt_next    = word_cnt;
+
+    case (fsm_state)
+        CMD_WAIT_S: begin
+            if (!rxfifo_empty) begin
+                rxfifo_rd_next = 1'b1;
+                fsm_next       = CMD_READ_S;
+            end
         end
-    end else if (do_test) begin
-        tx_en     <= 1'b1;
-        txfifo_wr <= 1'b1;
+
+        CMD_READ_S: begin
+            rxfifo_rd_next = 1'b0;
+            if (rxfifo_valid) begin
+                cmd_shifter_next = {rxfifo_data, cmd_shifter[63:8]};
+                fsm_next         = CMD_PARSE_S;
+            end
+        end
+
+        CMD_PARSE_S: begin
+            if ((cmd_prefix == 8'hAA) && (cmd_suffix == 8'h55)) begin
+                case (cmd_code)
+                    16'hbeef: begin
+                        cmd_shifter_next = '0;
+                        txfifo_wr_next   = 1'b1;
+                        txfifo_data_next = '0;
+                        word_cnt_next    = cmd_data;
+                        fsm_next         = TX_TEST_S;
+                    end
+                    16'h1ed0: begin
+                        cmd_shifter_next = '0;
+                        led0_drv_next    = cmd_data[0];
+                        fsm_next         = CMD_WAIT_S;
+                    end
+                endcase
+            end else begin
+                fsm_next = CMD_WAIT_S;
+            end
+        end
+
+        TX_TEST_S: begin
+            if (word_cnt == 0) begin
+                txfifo_wr_next = 0;
+                fsm_next       = CMD_WAIT_S;
+            end else if (!txfifo_full) begin
+                word_cnt_next    = word_cnt - 1'b1;
+                txfifo_data_next = txfifo_data + 1'b1;
+            end
+        end
+
+        default: begin
+            //do nothing
+        end
+   endcase
+end
+
+always_ff @(posedge sys_clk) begin
+    if (sys_rst) begin
+        fsm_state   <= CMD_WAIT_S;
+        cmd_shifter <= '0;
+        rxfifo_rd   <= 1'b0;
+        txfifo_data <= '0;
+        txfifo_wr   <= 1'b0;
+        led0_drv    <= 1'b0;
+        word_cnt    <= '0;
+    end else begin
+        fsm_state   <= fsm_next;
+        cmd_shifter <= cmd_shifter_next;
+        rxfifo_rd   <= rxfifo_rd_next;
+        txfifo_data <= txfifo_data_next;
+        txfifo_wr   <= txfifo_wr_next;
+        led0_drv    <= led0_drv_next;
+        word_cnt    <= word_cnt_next;
     end
 end
-assign ledr[1] = tx_en;
 
-logic led0_drv;
-always_ff @(posedge sys_clk) begin
-    if (sys_rst)
-        led0_drv <= 0;
-    else if (do_led0_on)
-        led0_drv <= 1'b1;
-    else if (do_led0_off)
-        led0_drv <= 1'b0;
-end
+assign ledr[1] = txfifo_wr;
 assign ledr[0] = led0_drv;
 
 //------------------------------------------------------------------------------

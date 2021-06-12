@@ -14,18 +14,23 @@ dev.setBitMode(0xff, 0x40)  # set fifo sync mode
 dev.setTimeouts(10, 10)  # in ms
 dev.setUSBParameters(65536, 65536)  # set rx, tx buffer size in bytes
 
+
+def cmd(code, data):
+    return ((0xAA << 56) | (code << 40) | (data << 8) | 0x55).to_bytes(8, 'little')
+
+
 # LED test
-dev.write(0x001711ED.to_bytes(4, 'little'))
+dev.write(cmd(0x1ED0, 1))
 sleep(2)
-dev.write(0x00ff11ED.to_bytes(4, 'little'))
+dev.write(cmd(0x1ED0, 0))
 sleep(2)
 
 # Start read test
-dev.write(0xbadc0ffe.to_bytes(4, 'little'))
+total_bytes = 100 * 1024 * 1024
+dev.write(cmd(0xBEEF, total_bytes))
 
 # Capture the data
 chunks = []
-total_bytes = 100 * 1024 * 1024
 start_time = time()
 while total_bytes > 0:
     chunk = dev.read(65536)
@@ -39,7 +44,7 @@ exec_time = time() - start_time
 data = [b for chunk in chunks for b in chunk]  # flatten all chunks
 data_len = len(data)
 data_len_mb = data_len / 1024 / 1024
-print("Read %.02f MB (%d bytes) in %f seconds (%.02f MB/s)" %
+print("Read %.02f MB (%d bytes) from FPGA in %f seconds (%.02f MB/s)" %
       (data_len_mb, data_len, exec_time, data_len_mb / exec_time))
 
 # Verify results
