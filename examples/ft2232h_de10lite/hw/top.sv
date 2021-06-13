@@ -97,14 +97,17 @@ proto245s #(
     .ft_wrn   (ft_wrn),
     .ft_oen   (ft_oen),
     .ft_siwu  (ft_siwu),
-    // FIFO interface
-    .fifo_clk     (sys_clk),
-    .fifo_rst     (sys_rst),
+    // RX FIFO (Host -> FTDI chip -> FPGA -> FIFO)
+    .rxfifo_clk   (sys_clk),
+    .rxfifo_rst   (sys_rst),
     .rxfifo_rd    (rxfifo_rd),
     .rxfifo_data  (rxfifo_data),
     .rxfifo_valid (rxfifo_valid),
     .rxfifo_load  (rxfifo_load),
     .rxfifo_empty (rxfifo_empty),
+    // TX FIFO (FIFO -> FPGA -> FTDI chip -> Host)
+    .txfifo_clk   (sys_clk),
+    .txfifo_rst   (sys_rst),
     .txfifo_data  (txfifo_data),
     .txfifo_wr    (txfifo_wr),
     .txfifo_load  (txfifo_load),
@@ -121,7 +124,8 @@ enum logic [3:0] {
     CMD_WAIT_S,
     CMD_READ_S,
     CMD_PARSE_S,
-    TX_TEST_S
+    TX_TEST_S,
+    RX_TEST_S
 } fsm_state, fsm_next;
 
 logic [63:0] cmd_shifter, cmd_shifter_next;
@@ -134,6 +138,7 @@ logic [DATA_W-1:0] txfifo_data_next;
 logic txfifo_wr_next;
 logic led0_drv, led0_drv_next;
 logic [31:0] word_cnt, word_cnt_next;
+logic [DATA_W-1:0] golden_data, golden_data_next;
 
 assign {cmd_prefix, cmd_code, cmd_data, cmd_suffix} = cmd_shifter;
 
@@ -145,9 +150,12 @@ always_comb begin
     txfifo_wr_next   = txfifo_wr;
     led0_drv_next    = led0_drv;
     word_cnt_next    = word_cnt;
+    golden_data_next = golden_data;
 
     case (fsm_state)
         CMD_WAIT_S: begin
+            txfifo_wr_next = 1'b0;
+            rxfifo_rd_next = 1'b0;
             if (!rxfifo_empty) begin
                 rxfifo_rd_next = 1'b1;
                 fsm_next       = CMD_READ_S;
@@ -157,7 +165,7 @@ always_comb begin
         CMD_READ_S: begin
             rxfifo_rd_next = 1'b0;
             if (rxfifo_valid) begin
-                cmd_shifter_next = {rxfifo_data, cmd_shifter[63:8]};
+                cmd_shifter_next = {rxfifo_data, cmd_shifter[63:DATA_W]};
                 fsm_next         = CMD_PARSE_S;
             end
         end
@@ -172,6 +180,13 @@ always_comb begin
                         word_cnt_next    = cmd_data;
                         fsm_next         = TX_TEST_S;
                     end
+                    16'hcafe: begin
+                        cmd_shifter_next = '0;
+                        word_cnt_next    = cmd_data;
+                        golden_data_next = '0;
+                        txfifo_data_next = 8'h42;
+                        fsm_next         = RX_TEST_S;
+                    end
                     16'h1ed0: begin
                         cmd_shifter_next = '0;
                         led0_drv_next    = cmd_data[0];
@@ -185,11 +200,26 @@ always_comb begin
 
         TX_TEST_S: begin
             if (word_cnt == 0) begin
-                txfifo_wr_next = 0;
+                txfifo_wr_next = 1'b0;
                 fsm_next       = CMD_WAIT_S;
             end else if (!txfifo_full) begin
                 word_cnt_next    = word_cnt - 1'b1;
                 txfifo_data_next = txfifo_data + 1'b1;
+            end
+        end
+
+        RX_TEST_S: begin
+            rxfifo_rd_next = !rxfifo_empty;
+            if (rxfifo_valid) begin
+                if (word_cnt == 0) begin
+                    rxfifo_rd_next = 1'b0;
+                    txfifo_wr_next = 1'b1;
+                    fsm_next       = CMD_WAIT_S;
+                end else begin
+                    word_cnt_next = word_cnt - 1'b1;
+                end
+                txfifo_data_next = (rxfifo_data != golden_data) ?  8'hee : txfifo_data;
+                golden_data_next = golden_data + 1'b1;
             end
         end
 
@@ -208,6 +238,7 @@ always_ff @(posedge sys_clk) begin
         txfifo_wr   <= 1'b0;
         led0_drv    <= 1'b0;
         word_cnt    <= '0;
+        golden_data <= '0;
     end else begin
         fsm_state   <= fsm_next;
         cmd_shifter <= cmd_shifter_next;
@@ -216,9 +247,11 @@ always_ff @(posedge sys_clk) begin
         txfifo_wr   <= txfifo_wr_next;
         led0_drv    <= led0_drv_next;
         word_cnt    <= word_cnt_next;
+        golden_data <= golden_data_next;
     end
 end
 
+assign ledr[2] = rxfifo_rd;
 assign ledr[1] = txfifo_wr;
 assign ledr[0] = led0_drv;
 
