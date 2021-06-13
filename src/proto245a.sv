@@ -18,7 +18,7 @@ module proto245a #(
     parameter DATA_W             = 8,    // FT chip data bus width
     parameter TX_FIFO_SIZE       = 4096, // TXFIFO size in data words
     parameter RX_FIFO_SIZE       = 4096, // RXFIFO size in data words
-    parameter SINGLE_CLK_DOMAIN  = 0,    // If ft_clk and fifo_clk are from the one clock domain (configures FIFOs type)
+    parameter SINGLE_CLK_DOMAIN  = 0,    // If FT clock and FIFO clocks are from the same clock domain
     parameter READ_TICKS         = 4,    // Active RD# time (ft_clk based; >30ns)
     parameter WRITE_TICKS        = 4,    // Active WR# time (ft_clk based; >30ns)
     parameter TURNAROUND_TICKS   = 8,    // Pause between transactions (ft_clk based; >63ns)
@@ -37,18 +37,21 @@ module proto245a #(
     output logic              ft_rdn,   // FT RD# signal
     output logic              ft_wrn,   // FT WR# signal
     output logic              ft_siwu,  // FT SIWU signal
-    // FIFO interface
-    input  logic                      fifo_clk,     // FIFO clock
-    input  logic                      fifo_rst,     // Active high synchronous reset (FIFO clock domain)
-    input  logic                      rxfifo_rd,    // RXFIFO read enable
-    output logic [DATA_W-1:0]         rxfifo_data,  // RXFIFO read data
-    output logic                      rxfifo_valid, // RXFIFO read data is valid
-    output logic [RX_FIFO_LOAD_W-1:0] rxfifo_load,  // RXFIFO load counter
-    output logic                      rxfifo_empty, // RXFIFO is empty
-    input  logic [DATA_W-1:0]         txfifo_data,  // TXFIFO write data
-    input  logic                      txfifo_wr,    // TXFIFO read enable
-    output logic [TX_FIFO_LOAD_W-1:0] txfifo_load,  // TXFIFO load counter
-    output logic                      txfifo_full   // TXFIFO is full
+    // RX FIFO (Host -> FTDI chip -> FPGA -> FIFO)
+    input  logic                      rxfifo_clk,   // RX FIFO clock
+    input  logic                      rxfifo_rst,   // RX FIFO active high synchronous reset
+    input  logic                      rxfifo_rd,    // RX FIFO read enable
+    output logic [DATA_W-1:0]         rxfifo_data,  // RX FIFO read data
+    output logic                      rxfifo_valid, // RX FIFO read data is valid
+    output logic [RX_FIFO_LOAD_W-1:0] rxfifo_load,  // RX FIFO load counter
+    output logic                      rxfifo_empty, // RX FIFO is empty
+    // TX FIFO (FIFO -> FPGA -> FTDI chip -> Host)
+    input  logic                      txfifo_clk,   // TX FIFO clock
+    input  logic                      txfifo_rst,   // TX FIFO active high synchronous reset
+    input  logic [DATA_W-1:0]         txfifo_data,  // TX FIFO write data
+    input  logic                      txfifo_wr,    // TX FIFO read enable
+    output logic [TX_FIFO_LOAD_W-1:0] txfifo_load,  // TX FIFO load counter
+    output logic                      txfifo_full   // TX FIFO is full
 );
 
 parameter TX_FIFO_ADDR_W = $clog2(TX_FIFO_SIZE);
@@ -82,9 +85,9 @@ always_ff @(posedge ft_clk) begin
     end
 end
 
-assign ft_not_empty = !rxfn_ff1;
+assign ft_not_empty = ~rxfn_ff1;
 assign ft_empty     =  rxfn_ff1;
-assign ft_not_full  = !txen_ff1;
+assign ft_not_full  = ~txen_ff1;
 assign ft_full      =  txen_ff1;
 
 //-------------------------------------------------------------------
@@ -128,8 +131,8 @@ end else begin: rxfifo_async_genblk
         .wen    (rxfifo_wen),
         .wfull  (rxfifo_full),
         // read side - to FPGA system
-        .rclk   (fifo_clk),
-        .rrst   (fifo_rst),
+        .rclk   (rxfifo_clk),
+        .rrst   (rxfifo_rst),
         .rload  (rxfifo_load),
         .rdata  (rxfifo_data),
         .ren    (rxfifo_rd),
@@ -171,8 +174,8 @@ end else begin: txfifo_async_genblk
         .DATA_W (DATA_W)
     ) txfifo (
         // write side - from system
-        .wclk   (fifo_clk),
-        .wrst   (fifo_rst),
+        .wclk   (txfifo_clk),
+        .wrst   (txfifo_rst),
         .wload  (txfifo_load),
         .wdata  (txfifo_data),
         .wen    (txfifo_wr),
