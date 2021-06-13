@@ -8,19 +8,21 @@ MiB = KiB * 1024
 
 
 class FPGA:
-    def __init__(self, ftdi_serial=b'FT3C8Z0AA'):
-        self.ftdev_serial = ftdi_serial
+    def __init__(self, ftdi_serial, fifo245_mode):
+        self.ftdi_serial = ftdi_serial
+        self.fifo245_mode = fifo245_mode
 
     def __enter__(self):
         try:
-            ftdev_id = ft.listDevices().index(self.ftdev_serial)
+            ftdev_id = ft.listDevices().index(self.ftdi_serial)
         except ValueError:
             raise Exception("No board found!")
         self.ftdev = ft.open(ftdev_id)
         self.ftdev.resetDevice()
-        self.ftdev.setBitMode(0xff, 0x40)  # set fifo sync mode
+        self.ftdev.setBitMode(0xff, 0x40 if self.fifo245_mode == 'sync' else 0x00)
         self.ftdev.setTimeouts(10, 10)  # in ms
         self.ftdev.setUSBParameters(64 * KiB, 64 * KiB)  # set rx, tx buffer size in bytes
+        self.ftdev.write(b'\x00\x00\x00\x00')  # dummy write
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -80,8 +82,7 @@ class FPGA:
             chunk_len = self.ftdev.write(data[offset:offset + chunk_len])
             data_len -= chunk_len
             offset += chunk_len
-        while not result:
-            result = self.ftdev.read(1)
+        result = self.ftdev.read(1)
         exec_time = time() - start_time
 
         # Print statistics
@@ -90,11 +91,12 @@ class FPGA:
               (data_len_mb, total_bytes, exec_time, data_len_mb / exec_time))
 
         # Verify data
-        print("Verify data: %s" % ('ok' if result[0] == 0x42 else 'error'))
+        result = 0 if not result else result[0]
+        print("Verify data: %s" % ('ok' if result == 0x42 else 'error'))
 
 
 if __name__ == "__main__":
-    with FPGA() as de10lite:
+    with FPGA(ftdi_serial=b'FT3C8Z0AA', fifo245_mode='sync') as de10lite:
         de10lite.test_led()
         de10lite.test_read(100 * MiB)
         de10lite.test_write(100 * MiB)
