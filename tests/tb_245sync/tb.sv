@@ -105,13 +105,15 @@ proto245s #(
     .ft_oen   (ft245_if.oen),
     .ft_siwu  (),
     // FIFO interface
-    .fifo_clk     (fifo_clk),
-    .fifo_rst     (fifo_rst),
+    .rxfifo_clk   (fifo_clk),
+    .rxfifo_rst   (fifo_rst),
     .rxfifo_rd    (fifo_if.rxfifo_rd),
     .rxfifo_data  (fifo_if.rxfifo_data),
     .rxfifo_valid (fifo_if.rxfifo_valid),
     .rxfifo_load  (fifo_if.rxfifo_load),
     .rxfifo_empty (fifo_if.rxfifo_empty),
+    .txfifo_clk   (fifo_clk),
+    .txfifo_rst   (fifo_rst),
     .txfifo_data  (fifo_if.txfifo_data),
     .txfifo_wr    (fifo_if.txfifo_wr),
     .txfifo_load  (fifo_if.txfifo_load),
@@ -136,7 +138,7 @@ proto245s #(
 `include "test_tx_flow_control.svh"
 `include "test_tx_thresholds.svh"
 
-`ifndef TESTCASE `define TESTCASE test_tx_thresholds `endif
+`ifndef TESTCASE `define TESTCASE test_rx_flow_control `endif
 
 initial begin : main
     int test_err;

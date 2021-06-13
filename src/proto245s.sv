@@ -25,7 +25,7 @@ module proto245s #(
     parameter RX_FIFO_SIZE       = 4096, // RXFIFO size in data words
     parameter RX_START_THRESHOLD = 3072, // RXFIFO is ready to receive data from the chip if RXFIFO FIFO is filled <= threshold
     parameter RX_BURST_SIZE      = 0,    // Maximum number of words inside read (receive) burst; use 0 to disable this feature and enable unlimited bursts
-    parameter SINGLE_CLK_DOMAIN  = 0,    // If ft_clk and fifo_clk are from the one clock domain (configures FIFOs type)
+    parameter SINGLE_CLK_DOMAIN  = 0,    // If FT clock and FIFO clocks are from the same clock domain
     parameter TURNAROUND_TICKS   = 4,    // Number of ticks (pause) after every burst
     // Derived parameters
     parameter BE_W           = DATA_W / 8 + (DATA_W % 8 ? 1 : 0),
@@ -45,14 +45,17 @@ module proto245s #(
     output logic              ft_wrn,   // FT WR# signal
     output logic              ft_oen,   // FT OE# signal
     output logic              ft_siwu,  // FT SIWU signal
-    // FIFO interface
-    input  logic                      fifo_clk,     // FIFO clock
-    input  logic                      fifo_rst,     // Active high synchronous reset (FIFO clock domain)
-    input  logic                      rxfifo_rd,    // RXFIFO read enable
-    output logic [DATA_W-1:0]         rxfifo_data,  // RXFIFO read data
-    output logic                      rxfifo_valid, // RXFIFO read data is valid
-    output logic [RX_FIFO_LOAD_W-1:0] rxfifo_load,  // RXFIFO load counter
-    output logic                      rxfifo_empty, // RXFIFO is empty
+    // RX FIFO (Host -> FTDI chip -> FPGA -> FIFO)
+    input  logic                      rxfifo_clk,   // RX FIFO clock
+    input  logic                      rxfifo_rst,   // RX FIFO active high synchronous reset
+    input  logic                      rxfifo_rd,    // RX FIFO read enable
+    output logic [DATA_W-1:0]         rxfifo_data,  // RX FIFO read data
+    output logic                      rxfifo_valid, // RX FIFO read data is valid
+    output logic [RX_FIFO_LOAD_W-1:0] rxfifo_load,  // RX FIFO load counter
+    output logic                      rxfifo_empty, // RX FIFO is empty
+    // TX FIFO (FIFO -> FPGA -> FTDI chip -> Host)
+    input  logic                      txfifo_clk,   // RX FIFO clock
+    input  logic                      txfifo_rst,   // RX FIFO active high synchronous reset
     input  logic [DATA_W-1:0]         txfifo_data,  // TXFIFO write data
     input  logic                      txfifo_wr,    // TXFIFO read enable
     output logic [TX_FIFO_LOAD_W-1:0] txfifo_load,  // TXFIFO load counter
@@ -84,9 +87,9 @@ always_ff @(posedge ft_clk) begin
     end
 end
 
-assign ft_not_empty = !rxfn;
+assign ft_not_empty = ~rxfn;
 assign ft_empty     =  rxfn;
-assign ft_not_full  = !txen;
+assign ft_not_full  = ~txen;
 assign ft_full      =  txen;
 
 //-------------------------------------------------------------------
@@ -104,7 +107,7 @@ always_ff @(posedge ft_clk) begin
         rxfifo_wvalid <= 1'b0;
     end else begin
         rxfifo_wdata  <= din;
-        rxfifo_wvalid <= din_valid && ft_not_empty;
+        rxfifo_wvalid <= din_valid & ft_not_empty;
     end
 end
 
@@ -138,8 +141,8 @@ end else begin: rxfifo_async_genblk
         .wen    (rxfifo_wvalid),
         .wfull  (rxfifo_full),
         // read side - to FPGA system
-        .rclk   (fifo_clk),
-        .rrst   (fifo_rst),
+        .rclk   (rxfifo_clk),
+        .rrst   (rxfifo_rst),
         .rload  (rxfifo_load),
         .rdata  (rxfifo_data),
         .ren    (rxfifo_rd),
@@ -221,8 +224,8 @@ end else begin: txfifo_async_genblk
         .DATA_W (DATA_W)
     ) txfifo (
         // write side - from system
-        .wclk   (fifo_clk),
-        .wrst   (fifo_rst),
+        .wclk   (txfifo_clk),
+        .wrst   (txfifo_rst),
         .wload  (txfifo_load),
         .wdata  (txfifo_data),
         .wen    (txfifo_wr),
@@ -243,7 +246,7 @@ end endgenerate
 logic [$clog2(TX_BACKOFF_TIMEOUT):0] backoff_timeout_cnt;
 
 // timeout counter resets every time tx fifo being written
-always_ff @(posedge ft_clk) begin: rxfifo_genblk
+always_ff @(posedge ft_clk) begin
     if (ft_rst)
         backoff_timeout_cnt <= 0;
     else if (txfifo_wr || txovrbuf_wr)
@@ -396,11 +399,11 @@ always_comb begin
                 // That's why there is a special handler that solves this problem.
                 fsm_next  = RX_OVERFLOW0_S;
                 rdn_next  = 1'b1;
-                oen_next  = 1'b1;
             end
         end
 
         RX_OVERFLOW0_S: begin
+            oen_next = 1'b1;
             if (ft_empty) begin
                 din_valid_next = 1'b0;
                 fsm_next       = TURNAROUND_S;

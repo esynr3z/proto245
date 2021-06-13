@@ -67,7 +67,7 @@ logic [DATA_W-1:0] mem [2 ** ADDR_W];
 //------------------------------------------------------------------------------
 // Write side
 //------------------------------------------------------------------------------
-assign wr = wen && !wfull;
+assign wr = wen & ~wfull;
 assign wptr_next = wr ? gray2bin(wptr) + 1'b1 : gray2bin(wptr);
 
 // write pointer is stored in the gray code
@@ -103,7 +103,7 @@ assign wfull = (wload == WORDS_TOTAL);
 //------------------------------------------------------------------------------
 // Read side
 //------------------------------------------------------------------------------
-assign rd = ren && !rempty;
+assign rd = ren & ~rempty;
 assign rptr_next = rd ? gray2bin(rptr) + 1'b1 : gray2bin(rptr);
 
 // read pointer is stored in the gray code
@@ -130,7 +130,7 @@ always_ff @(posedge rclk) begin
     if (rrst)
         rvalid <= '0;
     else
-        rvalid <= rd;
+        rvalid <= rd & ~rempty;
 end
 
 // do load logic in a binary form

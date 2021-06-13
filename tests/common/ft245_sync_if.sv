@@ -64,7 +64,8 @@ task serve_read;
         if (rxbuf.size() != 0) begin
             drv.rxfn <= 1'b0;
             do begin
-                @(negedge oen);
+                wait(drv.oen);
+                wait(!drv.oen);
                 din <= rxbuf.pop_back();
                 wait(!drv.rdn);
                 while(!drv.rdn) begin
@@ -74,6 +75,7 @@ task serve_read;
                 end
             end while (rxbuf.size() != 0);
             drv.rxfn <= 1'b1;
+            wait(drv.oen);
         end
     end
 endtask

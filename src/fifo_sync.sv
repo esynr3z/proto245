@@ -35,8 +35,8 @@ logic [DATA_W-1:0] mem [2 ** ADDR_W];
 assign full  = (load == WORDS_TOTAL);
 assign empty = (load == 0);
 
-assign wr = wen && !full;
-assign rd = ren && !empty;
+assign wr = wen & ~full;
+assign rd = ren & ~empty;
 
 always_ff @(posedge clk) begin
     if (rst)
@@ -71,7 +71,7 @@ always_ff @(posedge clk) begin
     if (rst)
         rvalid <= 0;
     else
-        rvalid <= rd;
+        rvalid <= rd & ~empty;
 end
 
 //------------------------------------------------------------------------------
