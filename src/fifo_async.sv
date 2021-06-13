@@ -130,7 +130,7 @@ always_ff @(posedge rclk) begin
     if (rrst)
         rvalid <= '0;
     else
-        rvalid <= rd & ~rempty;
+        rvalid <= rd;
 end
 
 // do load logic in a binary form

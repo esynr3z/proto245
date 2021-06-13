@@ -71,7 +71,7 @@ always_ff @(posedge clk) begin
     if (rst)
         rvalid <= 0;
     else
-        rvalid <= rd & ~empty;
+        rvalid <= rd;
 end
 
 //------------------------------------------------------------------------------

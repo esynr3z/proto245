@@ -54,8 +54,8 @@ module proto245a #(
     output logic                      txfifo_full   // TX FIFO is full
 );
 
-parameter TX_FIFO_ADDR_W = $clog2(TX_FIFO_SIZE);
-parameter RX_FIFO_ADDR_W = $clog2(RX_FIFO_SIZE);
+localparam TX_FIFO_ADDR_W = $clog2(TX_FIFO_SIZE);
+localparam RX_FIFO_ADDR_W = $clog2(RX_FIFO_SIZE);
 
 //-------------------------------------------------------------------
 // From FT chip
@@ -153,7 +153,7 @@ logic txfifo_ren, txfifo_ren_next;
 
 generate if (SINGLE_CLK_DOMAIN) begin: txfifo_sync_genblk
     fifo_sync #(
-        .ADDR_W (RX_FIFO_ADDR_W),
+        .ADDR_W (TX_FIFO_ADDR_W),
         .DATA_W (DATA_W)
     ) txfifo (
         .clk    (ft_clk),
@@ -245,10 +245,10 @@ always_comb begin
         end
 
         RX_S: begin
+            rxfifo_wen_next = (rd_cnt == 1);
             if (rd_cnt == '0) begin
                 rd_cnt_next     = RD_CNT_MAX;
                 rdn_next        = 1'b1;
-                rxfifo_wen_next = 1'b1;
                 fsm_next        = TA_S;
             end else begin
                 rd_cnt_next = rd_cnt - 1'b1;

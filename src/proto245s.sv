@@ -203,7 +203,7 @@ end
 
 generate if (SINGLE_CLK_DOMAIN) begin: txfifo_sync_genblk
     fifo_sync #(
-        .ADDR_W (RX_FIFO_ADDR_W),
+        .ADDR_W (TX_FIFO_ADDR_W),
         .DATA_W (DATA_W)
     ) txfifo (
         .clk    (ft_clk),

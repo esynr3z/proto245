@@ -14,6 +14,6 @@
 | ACBUS1 | TXE#        | gpio[10]       | ft_txen    |
 | ACBUS2 | RD#         | gpio[8]        | ft_rdn     |
 | ACBUS3 | WR#         | gpio[6]        | ft_wrn     |
-| ACBUS4 | SIWUA       | gpio[4]        | ft_siwua   |
+| ACBUS4 | SIWU        | gpio[4]        | ft_siwu    |
 | ACBUS5 | CLKOUT      | gpio[2]        | ft_clk     |
 | ACBUS6 | OE#         | gpio[0]        | ft_oen     |

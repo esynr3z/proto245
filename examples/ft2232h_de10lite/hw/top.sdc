@@ -28,8 +28,8 @@ set_input_delay -clock [get_clocks {ft_clk}] 8.333 [get_ports {ft_data[*] ft_rxf
 #**************************************************************
 # Set Output Delay
 #**************************************************************
-set_output_delay -clock [get_clocks {ft_clk}] -min 8.333 [get_ports {ft_data[*] ft_oen ft_wrn ft_rdn ft_siwua}]
-set_output_delay -clock [get_clocks {ft_clk}] -max 4.0 [get_ports {ft_data[*] ft_oen ft_wrn ft_rdn ft_siwua}]
+set_output_delay -clock [get_clocks {ft_clk}] -min 8.333 [get_ports {ft_data[*] ft_oen ft_wrn ft_rdn ft_siwu}]
+set_output_delay -clock [get_clocks {ft_clk}] -max 4.0 [get_ports {ft_data[*] ft_oen ft_wrn ft_rdn ft_siwu}]
 
 #**************************************************************
 # Set Clock Groups
