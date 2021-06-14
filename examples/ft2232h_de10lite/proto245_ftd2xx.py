@@ -22,7 +22,6 @@ class FPGA:
         self.ftdev.setBitMode(0xff, 0x40 if self.fifo245_mode == 'sync' else 0x00)
         self.ftdev.setTimeouts(10, 10)  # in ms
         self.ftdev.setUSBParameters(64 * KiB, 64 * KiB)  # set rx, tx buffer size in bytes
-        self.ftdev.write(b'\x00\x00\x00\x00')  # dummy write
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
