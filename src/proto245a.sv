@@ -67,7 +67,6 @@ logic rxfn_ff1;
 logic txen_ff1;
 logic din_valid, din_valid_next;
 logic ft_not_empty, ft_not_full;
-logic ft_empty, ft_full;
 
 always_ff @(posedge ft_clk) begin
     if (ft_rst) begin
@@ -86,9 +85,7 @@ always_ff @(posedge ft_clk) begin
 end
 
 assign ft_not_empty = ~rxfn_ff1;
-assign ft_empty     =  rxfn_ff1;
 assign ft_not_full  = ~txen_ff1;
-assign ft_full      =  txen_ff1;
 
 //-------------------------------------------------------------------
 // RX FIFO
@@ -194,12 +191,12 @@ end endgenerate
 //-------------------------------------------------------------------
 // Protocol FSM
 //-------------------------------------------------------------------
-localparam RD_CNT_MAX = READ_TICKS - 1;
 localparam RD_CNT_W   = $clog2(READ_TICKS);
-localparam WR_CNT_MAX = WRITE_TICKS - 1;
+localparam RD_CNT_MAX = RD_CNT_W'(READ_TICKS - 1);
 localparam WR_CNT_W   = $clog2(WRITE_TICKS);
-localparam TA_CNT_MAX = TURNAROUND_TICKS - 1;
+localparam WR_CNT_MAX = WR_CNT_W'(WRITE_TICKS - 1);
 localparam TA_CNT_W   = $clog2(TURNAROUND_TICKS);
+localparam TA_CNT_MAX = TA_CNT_W'(TURNAROUND_TICKS - 1);
 
 enum logic [2:0] {
     IDLE_S,
@@ -281,6 +278,10 @@ always_comb begin
             end else begin
                 wr_cnt_next = wr_cnt - 1'b1;
             end
+        end
+
+        default: begin
+            //do nothing
         end
    endcase
 end

@@ -334,8 +334,8 @@ end endgenerate
 //-------------------------------------------------------------------
 // Protocol FSM
 //-------------------------------------------------------------------
-localparam TURNAROUND_CNT_MAX = TURNAROUND_TICKS - 1;
-localparam TURNAROUND_CNT_W   = $clog2(TURNAROUND_TICKS);
+localparam TA_CNT_W   = $clog2(TURNAROUND_TICKS);
+localparam TA_CNT_MAX = TA_CNT_W'(TURNAROUND_TICKS - 1);
 
 enum logic [2:0] {
     IDLE_S,
@@ -357,7 +357,7 @@ logic rdn_next;
 logic wrn_next;
 logic oen_next;
 
-logic [TURNAROUND_CNT_W-1:0] ta_cnt, ta_cnt_next;
+logic [TA_CNT_W-1:0] ta_cnt, ta_cnt_next;
 
 always_comb begin
     fsm_next          = fsm_state;
@@ -420,7 +420,7 @@ always_comb begin
 
         TURNAROUND_S: begin
             if (ta_cnt == '0) begin
-                ta_cnt_next = TURNAROUND_CNT_MAX;
+                ta_cnt_next = TA_CNT_MAX;
                 fsm_next    = IDLE_S;
             end else begin
                 ta_cnt_next = ta_cnt - 1'b1;
@@ -456,7 +456,7 @@ always_ff @(posedge ft_clk) begin
         wrn           <= 1'b1;
         dout          <= '0;
         din_valid     <= 1'b0;
-        ta_cnt        <= TURNAROUND_CNT_MAX;
+        ta_cnt        <= TA_CNT_MAX;
         txfifo_ren    <= 1'b0;
         txovrbuf_ren  <= 1'b0;
     end else begin

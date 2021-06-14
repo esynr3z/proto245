@@ -40,7 +40,7 @@ function [PTR_W-1:0] bin2gray (input [PTR_W-1:0] bin);
 endfunction
 
 function [PTR_W-1:0] load (input [PTR_W-1:0] wptr, input [PTR_W-1:0] rptr);
-    load = (rptr <= wptr)? (wptr - rptr) : wptr + (2 * WORDS_TOTAL - rptr);
+    load = (rptr <= wptr)? (wptr - rptr) : wptr + (PTR_W'(2 * WORDS_TOTAL) - rptr);
 endfunction
 
 //------------------------------------------------------------------------------

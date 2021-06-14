@@ -24,26 +24,26 @@ logic sys_clk;
 assign sys_clk = max10_clk1_50;
 
 // System synchronous active high reset
-logic [5:0] sys_reset_cnt = 0;
-logic sys_rst = 1;
+logic [5:0] sys_reset_cnt = '0;
+logic sys_rst = 1'b1;
 always_ff @(posedge sys_clk) begin
     if (sys_reset_cnt < '1) begin
-        sys_rst       <= 1;
-        sys_reset_cnt <= sys_reset_cnt + 1;
+        sys_rst       <= 1'b1;
+        sys_reset_cnt <= sys_reset_cnt + 1'b1;
     end else begin
-        sys_rst       <= 0;
+        sys_rst       <= 1'b0;
     end
 end
 
 // FT domain synchronous active high reset
-logic [5:0] ft_reset_cnt = 0;
-logic ft_rst = 1;
+logic [5:0] ft_reset_cnt = '0;
+logic ft_rst = 1'b1;
 always_ff @(posedge ft_clk) begin
     if (ft_reset_cnt < '1) begin
-        ft_rst       <= 1;
-        ft_reset_cnt <= ft_reset_cnt + 1;
+        ft_rst       <= 1'b1;
+        ft_reset_cnt <= ft_reset_cnt + 1'b1;
     end else begin
-        ft_rst       <= 0;
+        ft_rst       <= 1'b0;
     end
 end
 
@@ -133,6 +133,9 @@ always_comb begin
                         led0_drv_next    = cmd_data[0];
                         fsm_next         = CMD_WAIT_S;
                     end
+                    default: begin
+                        //do nothing
+                    end
                 endcase
             end else begin
                 fsm_next = CMD_WAIT_S;
@@ -192,6 +195,7 @@ always_ff @(posedge sys_clk) begin
     end
 end
 
+assign ledr[7:3] = '0;
 assign ledr[2] = rxfifo_rd;
 assign ledr[1] = txfifo_wr;
 assign ledr[0] = led0_drv;
@@ -205,9 +209,9 @@ localparam HEARTBEAT_CNT_W = 25;
 logic [HEARTBEAT_CNT_W-1:0] sys_heartbeat_cnt;
 always_ff @(posedge sys_clk) begin
     if (sys_rst)
-        sys_heartbeat_cnt <= 0;
+        sys_heartbeat_cnt <= '0;
     else
-        sys_heartbeat_cnt <= sys_heartbeat_cnt + 1;
+        sys_heartbeat_cnt <= sys_heartbeat_cnt + 1'b1;
 end
 assign ledr[9] = sys_heartbeat_cnt[HEARTBEAT_CNT_W-1];
 
@@ -215,9 +219,9 @@ assign ledr[9] = sys_heartbeat_cnt[HEARTBEAT_CNT_W-1];
 logic [HEARTBEAT_CNT_W-1:0] ft_heartbeat_cnt;
 always_ff @(posedge ft_clk) begin
     if (ft_rst)
-        ft_heartbeat_cnt <= 0;
+        ft_heartbeat_cnt <= '0;
     else
-        ft_heartbeat_cnt <= ft_heartbeat_cnt + 1;
+        ft_heartbeat_cnt <= ft_heartbeat_cnt + 1'b1;
 end
 assign ledr[8] = ft_heartbeat_cnt[HEARTBEAT_CNT_W-1];
 
