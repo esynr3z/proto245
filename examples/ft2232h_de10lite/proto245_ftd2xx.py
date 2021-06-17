@@ -19,9 +19,11 @@ class FPGA:
             raise Exception("No board found!")
         self.ftdev = ft.open(ftdev_id)
         self.ftdev.resetDevice()
+        # AN130 for more details about commands below
         self.ftdev.setBitMode(0xff, 0x40 if self.fifo245_mode == 'sync' else 0x00)
         self.ftdev.setTimeouts(10, 10)  # in ms
         self.ftdev.setUSBParameters(64 * KiB, 64 * KiB)  # set rx, tx buffer size in bytes
+        self.ftdev.setFlowControl(ft.defines.FLOW_RTS_CTS, 0, 0)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

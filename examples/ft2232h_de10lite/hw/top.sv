@@ -195,7 +195,13 @@ always_ff @(posedge sys_clk) begin
     end
 end
 
-assign ledr[7:3] = '0;
+assign ledr[7:6] = '0;
+`ifdef FIFO245_SYNC
+assign ledr[5:4] = '0;
+`else
+assign ledr[5:4] = '1;
+`endif
+assign ledr[3] = 1'b0;
 assign ledr[2] = rxfifo_rd;
 assign ledr[1] = txfifo_wr;
 assign ledr[0] = led0_drv;
