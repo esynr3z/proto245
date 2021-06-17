@@ -15,7 +15,7 @@
 
 # Quartus Prime: Generate Tcl File for Project
 # File: proto245.tcl
-# Generated on: Fri Jun 11 23:16:25 2021
+# Generated on: Thu Jun 17 22:50:06 2021
 
 # Load Quartus Prime Tcl Project package
 package require ::quartus::project
@@ -74,6 +74,7 @@ if {$make_assignments} {
 	set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 	set_global_assignment -name VERILOG_INPUT_VERSION SYSTEMVERILOG_2005
 	set_global_assignment -name VERILOG_SHOW_LMF_MAPPING_MESSAGES OFF
+	set_global_assignment -name OPTIMIZATION_MODE BALANCED
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to max10_clk1_50
 	set_location_assignment PIN_P11 -to max10_clk1_50
 	set_instance_assignment -name IO_STANDARD "3.3 V SCHMITT TRIGGER" -to key[0]
@@ -100,36 +101,36 @@ if {$make_assignments} {
 	set_location_assignment PIN_A14 -to sw[7]
 	set_location_assignment PIN_B14 -to sw[8]
 	set_location_assignment PIN_F15 -to sw[9]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_clk -comment GPIO[2]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[0] -comment GPIO[8]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[1] -comment GPIO[10]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[2] -comment GPIO[12]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[3] -comment GPIO[14]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[4] -comment GPIO[16]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[5] -comment GPIO[18]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[6] -comment GPIO[20]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[7] -comment GPIO[22]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_rxfn -comment GPIO[24]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_txen -comment GPIO[26]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_rdn -comment GPIO[28]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_wrn -comment GPIO[30]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_siwu -comment GPIO[32]
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_oen -comment GPIO[34]
-	set_location_assignment PIN_V9 -to ft_clk -comment GPIO[2]
-	set_location_assignment PIN_W6 -to ft_data[0] -comment GPIO[8]
-	set_location_assignment PIN_W5 -to ft_data[1] -comment GPIO[10]
-	set_location_assignment PIN_AA14 -to ft_data[2] -comment GPIO[12]
-	set_location_assignment PIN_W12 -to ft_data[3] -comment GPIO[14]
-	set_location_assignment PIN_AB12 -to ft_data[4] -comment GPIO[16]
-	set_location_assignment PIN_AB11 -to ft_data[5] -comment GPIO[18]
-	set_location_assignment PIN_AB10 -to ft_data[6] -comment GPIO[20]
-	set_location_assignment PIN_AA9 -to ft_data[7] -comment GPIO[22]
-	set_location_assignment PIN_AA8 -to ft_rxfn -comment GPIO[24]
-	set_location_assignment PIN_AA7 -to ft_txen -comment GPIO[26]
-	set_location_assignment PIN_AA6 -to ft_rdn -comment GPIO[28]
-	set_location_assignment PIN_AA5 -to ft_wrn -comment GPIO[30]
-	set_location_assignment PIN_AB3 -to ft_siwu -comment GPIO[32]
-	set_location_assignment PIN_AB2 -to ft_oen -comment GPIO[34]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_clk
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[0]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[1]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[2]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[3]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[4]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[5]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[6]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_data[7]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_rxfn
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_txen
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_rdn
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_wrn
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_siwu
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ft_oen
+	set_location_assignment PIN_V9 -to ft_clk
+	set_location_assignment PIN_W6 -to ft_data[0]
+	set_location_assignment PIN_W5 -to ft_data[1]
+	set_location_assignment PIN_AA14 -to ft_data[2]
+	set_location_assignment PIN_W12 -to ft_data[3]
+	set_location_assignment PIN_AB12 -to ft_data[4]
+	set_location_assignment PIN_AB11 -to ft_data[5]
+	set_location_assignment PIN_AB10 -to ft_data[6]
+	set_location_assignment PIN_AA9 -to ft_data[7]
+	set_location_assignment PIN_AA8 -to ft_rxfn
+	set_location_assignment PIN_AA7 -to ft_txen
+	set_location_assignment PIN_AA6 -to ft_rdn
+	set_location_assignment PIN_AA5 -to ft_wrn
+	set_location_assignment PIN_AB3 -to ft_siwu
+	set_location_assignment PIN_AB2 -to ft_oen
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ledr[0]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ledr[1]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ledr[2]
@@ -150,6 +151,25 @@ if {$make_assignments} {
 	set_location_assignment PIN_D14 -to ledr[7]
 	set_location_assignment PIN_A11 -to ledr[8]
 	set_location_assignment PIN_B11 -to ledr[9]
+	set_location_assignment PIN_AA6 -to ft_data[0]
+	set_location_assignment PIN_AA7 -to ft_data[1]
+	set_location_assignment PIN_AA8 -to ft_data[2]
+	set_location_assignment PIN_AA9 -to ft_data[3]
+	set_location_assignment PIN_AB10 -to ft_data[4]
+	set_location_assignment PIN_AB12 -to ft_data[6]
+	set_location_assignment PIN_W12 -to ft_data[7]
+	set_location_assignment PIN_V10 -to ft_oen
+	set_location_assignment PIN_W6 -to ft_rdn
+	set_location_assignment PIN_AA14 -to ft_rxfn
+	set_location_assignment PIN_V8 -to ft_siwu
+	set_location_assignment PIN_W5 -to ft_txen
+	set_location_assignment PIN_V7 -to ft_wrn
+	set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ft_rdn
+	set_instance_assignment -name FAST_INPUT_REGISTER ON -to ft_rxfn
+	set_instance_assignment -name FAST_INPUT_REGISTER ON -to ft_txen
+	set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ft_wrn
+	set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ft_data
+	set_instance_assignment -name FAST_INPUT_REGISTER ON -to ft_data
 	set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 
 	# Commit assignments
