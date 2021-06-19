@@ -19,9 +19,8 @@ module proto245a #(
     parameter TX_FIFO_SIZE       = 4096, // TXFIFO size in data words
     parameter RX_FIFO_SIZE       = 4096, // RXFIFO size in data words
     parameter SINGLE_CLK_DOMAIN  = 0,    // If FT clock and FIFO clocks are from the same clock domain
-    parameter READ_TICKS         = 4,    // Active RD# time (ft_clk based; >30ns)
-    parameter WRITE_TICKS        = 4,    // Active WR# time (ft_clk based; >30ns)
-    parameter TURNAROUND_TICKS   = 8,    // Pause between transactions (ft_clk based; >63ns)
+    parameter READ_TICKS         = 4,    // Active RD# time (ft_clk based)
+    parameter WRITE_TICKS        = 4,    // Active WR# time (ft_clk based)
     // Derived parameters
     parameter TX_FIFO_LOAD_W = $clog2(TX_FIFO_SIZE) + 1,
     parameter RX_FIFO_LOAD_W = $clog2(RX_FIFO_SIZE) + 1
@@ -60,13 +59,14 @@ localparam RX_FIFO_ADDR_W = $clog2(RX_FIFO_SIZE);
 //-------------------------------------------------------------------
 // From FT chip
 //-------------------------------------------------------------------
-(* syn_useioff *) logic [DATA_W-1:0] din;
-(* syn_useioff *) logic rxfn_ff0;
+logic [DATA_W-1:0] din;
+logic rxfn_ff0;
 logic rxfn_ff1;
-(* syn_useioff *) logic txen_ff0;
+logic txen_ff0;
 logic txen_ff1;
 logic din_valid, din_valid_next;
 logic ft_not_empty, ft_not_full;
+logic ft_empty, ft_full;
 
 always_ff @(posedge ft_clk) begin
     if (ft_rst) begin
@@ -85,13 +85,14 @@ always_ff @(posedge ft_clk) begin
 end
 
 assign ft_not_empty = ~rxfn_ff1;
+assign ft_empty     =  rxfn_ff1;
 assign ft_not_full  = ~txen_ff1;
+assign ft_full      =  txen_ff1;
 
 //-------------------------------------------------------------------
 // RX FIFO
 //-------------------------------------------------------------------
 logic [RX_FIFO_LOAD_W-1:0] rxfifo_wload;
-logic rxfifo_ready;
 logic rxfifo_full;
 logic [DATA_W-1:0] rxfifo_wdata;
 logic rxfifo_wen, rxfifo_wen_next;
@@ -144,7 +145,6 @@ end endgenerate
 logic [DATA_W-1:0] txfifo_rdata;
 logic txfifo_rvalid;
 logic [TX_FIFO_LOAD_W-1:0] txfifo_rload;
-logic txfifo_ready;
 logic txfifo_empty;
 logic txfifo_ren, txfifo_ren_next;
 
@@ -195,27 +195,25 @@ localparam RD_CNT_W   = $clog2(READ_TICKS);
 localparam RD_CNT_MAX = RD_CNT_W'(READ_TICKS - 1);
 localparam WR_CNT_W   = $clog2(WRITE_TICKS);
 localparam WR_CNT_MAX = WR_CNT_W'(WRITE_TICKS - 1);
-localparam TA_CNT_W   = $clog2(TURNAROUND_TICKS);
-localparam TA_CNT_MAX = TA_CNT_W'(TURNAROUND_TICKS - 1);
 
 enum logic [2:0] {
     IDLE_S,
-    PREP_TX_S,
+    START_TX_S,
     TX_S,
+    END_TX_S,
     RX_S,
-    TA_S
+    END_RX_S
 } fsm_state, fsm_next;
 
-(* syn_useioff *) logic [DATA_W-1:0] dout;
-(* syn_useioff *) logic rdn;
-(* syn_useioff *) logic wrn;
+logic [DATA_W-1:0] dout;
+logic rdn;
+logic wrn;
 logic [DATA_W-1:0] dout_next;
 logic rdn_next;
 logic wrn_next;
 
 logic [RD_CNT_W-1:0] rd_cnt, rd_cnt_next;
 logic [WR_CNT_W-1:0] wr_cnt, wr_cnt_next;
-logic [TA_CNT_W-1:0] ta_cnt, ta_cnt_next;
 
 always_comb begin
     fsm_next        = fsm_state;
@@ -226,7 +224,6 @@ always_comb begin
     txfifo_ren_next = 1'b0;
     rd_cnt_next     = rd_cnt;
     wr_cnt_next     = wr_cnt;
-    ta_cnt_next     = ta_cnt;
 
     case (fsm_state)
         IDLE_S: begin
@@ -236,33 +233,29 @@ always_comb begin
                 fsm_next = RX_S;
             end else if (ft_not_full && !txfifo_empty) begin
                 // go transmit, if FT chip has empty space and our tranmsmit fifo is not empty
-                fsm_next        = PREP_TX_S;
+                fsm_next        = START_TX_S;
                 txfifo_ren_next = 1'b1;
             end
         end
 
         RX_S: begin
-            rxfifo_wen_next = (rd_cnt == 1);
             if (rd_cnt == '0) begin
                 rd_cnt_next     = RD_CNT_MAX;
+                rxfifo_wen_next = 1'b1;
                 rdn_next        = 1'b1;
-                fsm_next        = TA_S;
+                fsm_next        = END_RX_S;
             end else begin
                 rd_cnt_next = rd_cnt - 1'b1;
             end
         end
 
-        TA_S: begin
-            wrn_next = 1'b1;
-            if (ta_cnt == '0) begin
-                ta_cnt_next = TA_CNT_MAX;
-                fsm_next    = IDLE_S;
-            end else begin
-                ta_cnt_next = ta_cnt - 1'b1;
+        END_RX_S: begin
+            if (ft_empty) begin
+                fsm_next = IDLE_S;
             end
         end
 
-        PREP_TX_S : begin
+        START_TX_S : begin
             if (txfifo_rvalid) begin
                 dout_next = txfifo_rdata;
                 fsm_next  = TX_S;
@@ -271,12 +264,18 @@ always_comb begin
 
         TX_S : begin
             wrn_next  = 1'b0;
-            ta_cnt_next = ta_cnt - 1'b1;
             if (wr_cnt == '0) begin
                 wr_cnt_next = WR_CNT_MAX;
-                fsm_next    = TA_S;
+                fsm_next    = END_TX_S;
             end else begin
                 wr_cnt_next = wr_cnt - 1'b1;
+            end
+        end
+
+        END_TX_S: begin
+            wrn_next = 1'b1;
+            if (ft_full) begin
+                fsm_next    = IDLE_S;
             end
         end
 
@@ -296,7 +295,6 @@ always_ff @(posedge ft_clk) begin
         txfifo_ren <= 1'b0;
         rd_cnt     <= RD_CNT_MAX;
         wr_cnt     <= WR_CNT_MAX;
-        ta_cnt     <= TA_CNT_MAX;
     end else begin
         fsm_state  <= fsm_next;
         rdn        <= rdn_next;
@@ -306,7 +304,6 @@ always_ff @(posedge ft_clk) begin
         txfifo_ren <= txfifo_ren_next;
         rd_cnt     <= rd_cnt_next;
         wr_cnt     <= wr_cnt_next;
-        ta_cnt     <= ta_cnt_next;
     end
 end
 

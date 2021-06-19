@@ -1,9 +1,8 @@
 localparam TX_FIFO_SIZE       = 4096;
 localparam RX_FIFO_SIZE       = 4096;
 localparam SINGLE_CLK_DOMAIN  = 1;
-localparam READ_TICKS         = 8;
-localparam WRITE_TICKS        = 8;
-localparam TURNAROUND_TICKS   = 16;
+localparam READ_TICKS         = 2;
+localparam WRITE_TICKS        = 2;
 localparam TX_FIFO_LOAD_W     = $clog2(TX_FIFO_SIZE) + 1;
 localparam RX_FIFO_LOAD_W     = $clog2(RX_FIFO_SIZE) + 1;
 
@@ -25,8 +24,7 @@ proto245a #(
     .RX_FIFO_SIZE      (RX_FIFO_SIZE),
     .SINGLE_CLK_DOMAIN (SINGLE_CLK_DOMAIN),
     .READ_TICKS        (READ_TICKS),
-    .WRITE_TICKS       (WRITE_TICKS),
-    .TURNAROUND_TICKS  (TURNAROUND_TICKS)
+    .WRITE_TICKS       (WRITE_TICKS)
 ) proto245 (
     // FT interface - should be routed directly to IO
     .ft_rst   (sys_rst),

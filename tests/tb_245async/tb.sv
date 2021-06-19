@@ -6,7 +6,6 @@ module tb;
 `ifndef RX_FIFO_SIZE       `define RX_FIFO_SIZE     32 `endif
 `ifndef READ_TICKS         `define READ_TICKS       4 `endif
 `ifndef WRITE_TICKS        `define WRITE_TICKS      4 `endif
-`ifndef TURNAROUND_TICKS   `define TURNAROUND_TICKS 8 `endif
 
 `ifndef FT_CLK_FREQ   `define FT_CLK_FREQ   100e6 `endif
 `ifndef FIFO_CLK_FREQ `define FIFO_CLK_FREQ 50e6 `endif
@@ -21,7 +20,6 @@ localparam TX_FIFO_SIZE       = `TX_FIFO_SIZE;
 localparam RX_FIFO_SIZE       = `RX_FIFO_SIZE;
 localparam READ_TICKS         = `READ_TICKS;
 localparam WRITE_TICKS        = `WRITE_TICKS;
-localparam TURNAROUND_TICKS   = `TURNAROUND_TICKS;
 `ifdef SINGLE_CLK_DOMAIN
 localparam SINGLE_CLK_DOMAIN  = 1;
 `else
@@ -82,8 +80,7 @@ proto245a #(
     .RX_FIFO_SIZE      (RX_FIFO_SIZE),
     .SINGLE_CLK_DOMAIN (SINGLE_CLK_DOMAIN),
     .READ_TICKS        (READ_TICKS),
-    .WRITE_TICKS       (WRITE_TICKS),
-    .TURNAROUND_TICKS  (TURNAROUND_TICKS)
+    .WRITE_TICKS       (WRITE_TICKS)
 ) dut (
     // FT interface
     .ft_rst   (ft_rst),
