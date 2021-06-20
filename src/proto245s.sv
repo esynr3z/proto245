@@ -28,7 +28,7 @@ module proto245s #(
     parameter SINGLE_CLK_DOMAIN  = 0,    // If FT clock and FIFO clocks are from the same clock domain
     parameter TURNAROUND_TICKS   = 4,    // Number of ticks (pause) after every burst
     // Derived parameters
-    parameter BE_W           = DATA_W / 8 + (DATA_W % 8 ? 1 : 0),
+    parameter BE_W           = DATA_W / 8 + ((DATA_W % 8 != 0) ? 1 : 0),
     parameter TX_FIFO_LOAD_W = $clog2(TX_FIFO_SIZE) + 1,
     parameter RX_FIFO_LOAD_W = $clog2(RX_FIFO_SIZE) + 1
 )(
@@ -68,9 +68,9 @@ localparam RX_FIFO_ADDR_W = $clog2(RX_FIFO_SIZE);
 //-------------------------------------------------------------------
 // From FT chip
 //-------------------------------------------------------------------
-(* syn_useioff *) logic [DATA_W-1:0] din;
-(* syn_useioff *) logic rxfn;
-(* syn_useioff *) logic txen;
+logic [DATA_W-1:0] din;
+logic rxfn;
+logic txen;
 logic din_valid, din_valid_next;
 logic ft_not_empty, ft_not_full;
 logic ft_empty, ft_full;
@@ -347,15 +347,10 @@ enum logic [2:0] {
     RX_OVERFLOW1_S
 } fsm_state, fsm_next;
 
-// To relax timing constraints interface triggers must be places inside IO
-(* syn_useioff *) logic [DATA_W-1:0] dout;
-(* syn_useioff *) logic rdn;
-(* syn_useioff *) logic wrn;
-(* syn_useioff *) logic oen;
-logic [DATA_W-1:0] dout_next;
-logic rdn_next;
-logic wrn_next;
-logic oen_next;
+logic [DATA_W-1:0] dout, dout_next;
+logic rdn, rdn_next;
+logic wrn, wrn_next;
+logic oen, oen_next;
 
 logic [TA_CNT_W-1:0] ta_cnt, ta_cnt_next;
 
