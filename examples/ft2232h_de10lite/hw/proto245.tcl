@@ -151,19 +151,6 @@ if {$make_assignments} {
 	set_location_assignment PIN_D14 -to ledr[7]
 	set_location_assignment PIN_A11 -to ledr[8]
 	set_location_assignment PIN_B11 -to ledr[9]
-	set_location_assignment PIN_AA6 -to ft_data[0]
-	set_location_assignment PIN_AA7 -to ft_data[1]
-	set_location_assignment PIN_AA8 -to ft_data[2]
-	set_location_assignment PIN_AA9 -to ft_data[3]
-	set_location_assignment PIN_AB10 -to ft_data[4]
-	set_location_assignment PIN_AB12 -to ft_data[6]
-	set_location_assignment PIN_W12 -to ft_data[7]
-	set_location_assignment PIN_V10 -to ft_oen
-	set_location_assignment PIN_W6 -to ft_rdn
-	set_location_assignment PIN_AA14 -to ft_rxfn
-	set_location_assignment PIN_V8 -to ft_siwu
-	set_location_assignment PIN_W5 -to ft_txen
-	set_location_assignment PIN_V7 -to ft_wrn
 	set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ft_rdn
 	set_instance_assignment -name FAST_INPUT_REGISTER ON -to ft_rxfn
 	set_instance_assignment -name FAST_INPUT_REGISTER ON -to ft_txen

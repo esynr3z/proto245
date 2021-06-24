@@ -80,6 +80,7 @@ logic txfifo_wr_next;
 logic led0_drv, led0_drv_next;
 logic [31:0] word_cnt, word_cnt_next;
 logic [DATA_W-1:0] golden_data, golden_data_next;
+logic dbg_led, dbg_led_next;
 
 assign {cmd_prefix, cmd_code, cmd_data, cmd_suffix} = cmd_shifter;
 
@@ -92,6 +93,7 @@ always_comb begin
     led0_drv_next    = led0_drv;
     word_cnt_next    = word_cnt;
     golden_data_next = golden_data;
+    dbg_led_next     = dbg_led;
 
     case (fsm_state)
         CMD_WAIT_S: begin
@@ -183,6 +185,7 @@ always_ff @(posedge sys_clk) begin
         led0_drv    <= 1'b0;
         word_cnt    <= '0;
         golden_data <= '0;
+        dbg_led     <= 1'b0;
     end else begin
         fsm_state   <= fsm_next;
         cmd_shifter <= cmd_shifter_next;
@@ -192,16 +195,19 @@ always_ff @(posedge sys_clk) begin
         led0_drv    <= led0_drv_next;
         word_cnt    <= word_cnt_next;
         golden_data <= golden_data_next;
+        dbg_led     <= dbg_led_next;
     end
 end
 
-assign ledr[7:6] = '0;
 `ifdef FIFO245_SYNC
-assign ledr[5:4] = '0;
+assign ledr[7] = '0;
 `else
-assign ledr[5:4] = '1;
+assign ledr[7] = '1;
 `endif
-assign ledr[3] = 1'b0;
+assign ledr[6] = ~ft_wrn;
+assign ledr[5] = ~ft_rdn;
+assign ledr[4] = ~ft_txen;
+assign ledr[3] = ~ft_rxfn;
 assign ledr[2] = rxfifo_rd;
 assign ledr[1] = txfifo_wr;
 assign ledr[0] = led0_drv;
