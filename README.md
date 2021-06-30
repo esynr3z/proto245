@@ -126,9 +126,9 @@ The same as for ```proto245a``` core.
 
 ## Examples
 
-| Project                                       | FPGA/Board                                                                               | FTDI chip                                          | Software                                            |
-| :-------------------------------------------- | :--------------------------------------------------------------------------------------- | :------------------------------------------------- | :-------------------------------------------------- |
-| [ft2232h_de10lite](examples/ft2232h_de10lite) | [DE10-Lite](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=1021) | [FT2232H](https://ftdichip.com/products/ft2232hq/) | Python ([ftd2xx](https://pypi.org/project/ftd2xx/)) |
+| Project                                       | FPGA/Board                                                                               | FTDI chip                                          | Software                                                                                                                                                      |
+| :-------------------------------------------- | :--------------------------------------------------------------------------------------- | :------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [ft2232h_de10lite](examples/ft2232h_de10lite) | [DE10-Lite](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=1021) | [FT2232H](https://ftdichip.com/products/ft2232hq/) | Python ([ftd2xx](https://pypi.org/project/ftd2xx/), [pylibftdi](https://github.com/codedstructure/pylibftdi), [pyusb](https://github.com/pyusb/pyusb), ftdi1) |
 
 For more details please follow README files inside ```examples/$PROJNAME$``` directories.
 
